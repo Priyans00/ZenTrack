@@ -127,7 +127,7 @@ npm run tauri build
 ## 🤝 Contributing
 
 We welcome contributions!
-See [CONTRIBUTING.md](CONTRIBUTIONG.md) for guidelines.
+See [CONTRIBUTION.md](CONTRIBUTION.md) for guidelines.
 
 ---
 
