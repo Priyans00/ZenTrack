@@ -42,18 +42,20 @@ export default {
       keyframes: {
         'gradient-y': {
           '0%, 100%': {
-            transform: 'translateY(-50%)',
+            'background-size': '400% 400%',
+            'background-position': '0% 50%'
           },
           '50%': {
-            transform: 'translateY(50%)',
+            'background-position': '100% 50%'
           },
         },
         'gradient-x': {
           '0%, 100%': {
-            transform: 'translateX(-50%)',
+            'background-size': '200% 200%',
+            'background-position': 'left center'
           },
           '50%': {
-            transform: 'translateX(50%)',
+            'background-position': 'right center'
           },
         },
         'gradient-xy': {
@@ -82,5 +84,35 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function({ addUtilities }) {
+      const newUtilities = {
+        '.gradient-primary': {
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        },
+        '.text-gradient': {
+          'background-clip': 'text',
+          '-webkit-background-clip': 'text',
+          '-webkit-text-fill-color': 'transparent',
+        },
+        '.card': {
+          'background': 'rgba(255, 255, 255, 0.95)',
+          'backdrop-filter': 'blur(10px)',
+          'border-radius': '1rem',
+          'padding': '2rem',
+          'box-shadow': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          'transition': 'all 0.3s ease',
+        },
+        '.border-gradient': {
+          'border-image': 'linear-gradient(45deg, #667eea, #764ba2) 1',
+        },
+        '.bg-gradient-animated': {
+          'background': 'linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c)',
+          'background-size': '400% 400%',
+          'animation': 'gradient 15s ease infinite',
+        },
+      }
+      addUtilities(newUtilities)
+    }
+  ],
 }
