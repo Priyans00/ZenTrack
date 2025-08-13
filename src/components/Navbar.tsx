@@ -6,6 +6,7 @@ const Navbar = () => {
   const navItems = [
     { path: '/', label: 'Home', icon: '🏠' },
     { path: '/tasks', label: 'Tasks', icon: '📋' },
+    { path: '/calendar', label: 'Calendar', icon: '📅' },
     { path: '/time', label: 'Time Tracker', icon: '⏰' },
     { path: '/spend', label: 'Spending', icon: '💰' },
     { path: '/about', label: 'About', icon: 'ℹ️' },

@@ -60,12 +60,14 @@ const Tasks = () => {
     try {
       if (editId === null) {
         await invoke("add_task", { task: { ...form, id: 0 } });
+        setForm(defaultTask);
+        await fetchTasks();
       } else {
         await invoke("update_task", { task: { ...form, id: editId } });
         setEditId(null);
+        setForm(defaultTask);
+        await fetchTasks();
       }
-      setForm(defaultTask);
-      fetchTasks();
     } catch (error) {
       console.error("Failed to save task:", error);
     }
