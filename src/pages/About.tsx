@@ -162,11 +162,11 @@ const About = () => {
               <span className="text-xl">📂</span>
               <span>View on GitHub</span>
             </a>
-            <a href="mailto:support@zentrack.com" className="flex items-center gap-3 bg-blue-600 text-white px-8 py-4 rounded-xl hover:bg-blue-700 transition-colors font-semibold">
+            <a href="mailto:p.sprout.108@gmail.com" className="flex items-center gap-3 bg-blue-600 text-white px-8 py-4 rounded-xl hover:bg-blue-700 transition-colors font-semibold">
               <span className="text-xl">📧</span>
               <span>Send Email</span>
             </a>
-            <a href="#" className="flex items-center gap-3 bg-purple-600 text-white px-8 py-4 rounded-xl hover:bg-purple-700 transition-colors font-semibold">
+            <a href="https://synaptick.vercel.app/" className="flex items-center gap-3 bg-purple-600 text-white px-8 py-4 rounded-xl hover:bg-purple-700 transition-colors font-semibold">
               <span className="text-xl">📖</span>
               <span>Documentation</span>
             </a>

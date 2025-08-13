@@ -34,10 +34,12 @@ fn load_tasks() -> TaskList {
     }
 }
 
-fn save_tasks(tasks: &TaskList) {
+fn save_tasks(tasks: &TaskList) -> Result<(), String> {
     let path = tasks_file();
-    let data = serde_json::to_string_pretty(tasks).unwrap();
-    fs::write(path, data).unwrap();
+    let data = serde_json::to_string_pretty(tasks)
+        .map_err(|e| e.to_string())?;
+    fs::write(path, data)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -46,31 +48,34 @@ fn get_tasks(state: State<'_, TaskStore>) -> Vec<Task> {
 }
 
 #[tauri::command]
-fn add_task(state: State<'_, TaskStore>, task: Task) -> Vec<Task> {
-    let mut tasks = state.0.lock().unwrap();
+fn add_task(state: State<'_, TaskStore>, task: Task) -> Result<Vec<Task>, String> {
+    let mut tasks = state.0.lock()
+        .map_err(|e| e.to_string())?;
     let mut new_task = task.clone();
     new_task.id = tasks.iter().map(|t| t.id).max().unwrap_or(0) + 1;
     tasks.push(new_task);
-    save_tasks(&tasks);
-    tasks.clone()
+    save_tasks(&tasks)?;
+    Ok(tasks.clone())
 }
 
 #[tauri::command]
-fn update_task(state: State<'_, TaskStore>, task: Task) -> Vec<Task> {
-    let mut tasks = state.0.lock().unwrap();
+fn update_task(state: State<'_, TaskStore>, task: Task) -> Result<Vec<Task>, String> {
+    let mut tasks = state.0.lock()
+        .map_err(|e| e.to_string())?;
     if let Some(pos) = tasks.iter().position(|t| t.id == task.id) {
         tasks[pos] = task;
-        save_tasks(&tasks);
+        save_tasks(&tasks)?;
     }
-    tasks.clone()
+    Ok(tasks.clone())
 }
 
 #[tauri::command]
-fn delete_task(state: State<'_, TaskStore>, id: u64) -> Vec<Task> {
-    let mut tasks = state.0.lock().unwrap();
+fn delete_task(state: State<'_, TaskStore>, id: u64) -> Result<Vec<Task>, String> {
+    let mut tasks = state.0.lock()
+        .map_err(|e| e.to_string())?;
     tasks.retain(|t| t.id != id);
-    save_tasks(&tasks);
-    tasks.clone()
+    save_tasks(&tasks)?;
+    Ok(tasks.clone())
 }
 
 
