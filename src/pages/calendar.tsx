@@ -85,12 +85,14 @@ const Calendar = () => {
       const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
       const isSelected = date.toDateString() === selectedDate.toDateString();
       const dayTasks = getTasksForDate(date);
+      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
 
       days.push(
         <div
           key={day}
           onClick={() => setSelectedDate(date)}
-          className={`p-4 border border-gray-100 cursor-pointer transition-all hover:bg-blue-50 ${isSelected ? 'bg-blue-100' : ''}`}
+          className={`p-4 border border-gray-100 cursor-pointer transition-all hover:bg-blue-50 ${isSelected ? 'bg-blue-100' : ''}
+          ${isWeekend? 'text-red-600':'text-gray-900'}`}
         >
           <div className="font-semibold mb-2">{day}</div>
           {dayTasks.length > 0 && (
@@ -136,8 +138,8 @@ const Calendar = () => {
             </div>
 
             <div className="grid grid-cols-7 gap-1">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="p-4 text-center font-semibold text-gray-600">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day,index) => (
+              <div key={day} className={`p-4 text-center font-semibold ${index == 0 || index == 6 ? 'text-red-600':'text-gray-900'}`}>
                   {day}
                 </div>
               ))}

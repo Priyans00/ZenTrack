@@ -24,3 +24,4 @@ dist-ssr
 *.sw?
 
 src-tauri/tasks.json
+src-tauri/target
