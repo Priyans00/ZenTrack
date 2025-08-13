@@ -133,6 +133,5 @@ See [CONTRIBUTION.md](CONTRIBUTION.md) for guidelines.
 
 ## 📜 License
 
-MIT License © 2025 YourName
-
+MIT License © 2025 Priyans00
 
