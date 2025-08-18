@@ -175,7 +175,7 @@ const About = () => {
 
         {/* Footer */}
         <footer className="text-center space-y-2 pt-12 border-t border-gray-200">
-          <p className="text-gray-600">Made with ❤️ using Tauri and React</p>
+          <p className="text-gray-600">Made with ❤️ using Tauri and React by PRIYANS</p>
           <p className="text-gray-500">© 2025 ZenTrack. Open source productivity tool.</p>
         </footer>
       </div>
