@@ -14,6 +14,10 @@ edition = "2021"
 name = "zentrack_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
+[features]
+default = []
+mobile = []
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
@@ -22,4 +26,5 @@ tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+rusqlite = { version = "0.32", features = ["bundled"] }
 

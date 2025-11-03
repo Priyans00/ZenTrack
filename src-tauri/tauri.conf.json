@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "zentrack",
+  "productName": "BitList",
   "version": "0.1.0",
-  "identifier": "com.shail.zentrack",
+  "identifier": "com.shail.bitlist",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,9 +12,13 @@
   "app": {
     "windows": [
       {
-        "title": "zentrack",
+        "title": "BitList",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "minWidth": 320,
+        "minHeight": 480,
+        "fullscreen": false,
+        "resizable": true
       }
     ],
     "security": {
@@ -30,6 +34,12 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "iOS": {
+      "minimumSystemVersion": "13.0"
+    },
+    "android": {
+      "minSdkVersion": 24
+    }
   }
 }
