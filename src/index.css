@@ -1,3 +1,68 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-card: #1a1a24;
+  --bg-card-hover: #22222e;
+  --border-color: #2a2a3a;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0b0;
+  --text-muted: #6b6b7b;
+  --accent-teal: #00d4aa;
+  --accent-teal-dim: rgba(0, 212, 170, 0.15);
+  --accent-coral: #ff6b6b;
+  --accent-coral-dim: rgba(255, 107, 107, 0.15);
+  --accent-blue: #4dabf7;
+  --accent-blue-dim: rgba(77, 171, 247, 0.15);
+  --accent-purple: #9775fa;
+  --accent-purple-dim: rgba(151, 117, 250, 0.15);
+  --accent-yellow: #ffd43b;
+  --accent-yellow-dim: rgba(255, 212, 59, 0.15);
+  --accent-pink: #f06595;
+  --accent-pink-dim: rgba(240, 101, 149, 0.15);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a4a;
+}
+
+/* Glow effects */
+.glow-teal {
+  box-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
+}
+
+.glow-coral {
+  box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+}
+
+.glow-blue {
+  box-shadow: 0 0 20px rgba(77, 171, 247, 0.3);
+}
+
+.glow-purple {
+  box-shadow: 0 0 20px rgba(151, 117, 250, 0.3);
+}
