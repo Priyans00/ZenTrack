@@ -1,22 +1,13 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-
-type Task = {
-  id: number;
-  title: string;
-  description: string;
-  due_date?: string;
-  tags: string[];
-  priority: string;
-  status: string;
-};
+import TaskModal, { Task } from "../components/TaskModal";
 
 const Calendar = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [tasks, setTasks] = useState<Task[]>([]);
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
 
-  // Fetch tasks
   const fetchTasks = async () => {
     try {
       const res = await invoke<Task[]>("get_tasks");
@@ -30,7 +21,6 @@ const Calendar = () => {
     fetchTasks();
   }, []);
 
-  // Update task status
   const updateTaskStatus = async (taskId: number, newStatus: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
@@ -40,12 +30,12 @@ const Calendar = () => {
         task: { ...task, status: newStatus } 
       });
       fetchTasks();
+      setActiveTask((prev) => (prev && prev.id === taskId ? { ...prev, status: newStatus } : prev));
     } catch (error) {
       console.error("Failed to update task:", error);
     }
   };
 
-  // Calendar navigation
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -60,7 +50,6 @@ const Calendar = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + (direction === 'next' ? 1 : -1)));
   };
 
-  // Filter tasks for selected date
   const getTasksForDate = (date: Date) => {
     return tasks.filter(task => {
       if (!task.due_date) return false;
@@ -69,34 +58,56 @@ const Calendar = () => {
     });
   };
 
-  // Generate calendar grid
+  const isToday = (date: Date) => {
+    return date.toDateString() === new Date().toDateString();
+  };
+
   const generateCalendarDays = () => {
     const daysInMonth = getDaysInMonth(currentMonth);
     const firstDay = getFirstDayOfMonth(currentMonth);
     const days = [];
 
-    // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="p-4 border border-gray-100"></div>);
+      days.push(
+        <div key={`empty-${i}`} className="p-2 sm:p-3 border border-dark-border/50 bg-dark-secondary/30"></div>
+      );
     }
 
-    // Add cells for each day of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
       const isSelected = date.toDateString() === selectedDate.toDateString();
       const dayTasks = getTasksForDate(date);
       const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+      const isTodayDate = isToday(date);
 
       days.push(
         <div
           key={day}
           onClick={() => setSelectedDate(date)}
-          className={`p-4 border border-gray-100 cursor-pointer transition-all hover:bg-blue-50 ${isSelected ? 'bg-blue-100' : ''}
-          ${isWeekend? 'text-red-600':'text-gray-900'}`}
+          className={`p-2 sm:p-3 border border-dark-border/50 cursor-pointer transition-all duration-200 min-h-[70px] sm:min-h-[90px] ${
+            isSelected 
+              ? 'bg-accent-teal/10 border-accent-teal/50' 
+              : 'hover:bg-dark-card-hover'
+          } ${isTodayDate ? 'ring-1 ring-accent-teal/30' : ''}`}
         >
-          <div className="font-semibold mb-2">{day}</div>
+          <div className={`font-medium text-sm mb-1 ${
+            isTodayDate 
+              ? 'text-accent-teal' 
+              : isWeekend 
+                ? 'text-accent-coral/70' 
+                : 'text-gray-300'
+          }`}>
+            {day}
+          </div>
           {dayTasks.length > 0 && (
-            <div className="text-xs text-blue-600">{dayTasks.length} tasks</div>
+            <div className="flex flex-wrap gap-1">
+              {dayTasks.slice(0, 2).map((_, idx) => (
+                <div key={idx} className="w-1.5 h-1.5 rounded-full bg-accent-teal"></div>
+              ))}
+              {dayTasks.length > 2 && (
+                <span className="text-xs text-gray-500">+{dayTasks.length - 2}</span>
+              )}
+            </div>
           )}
         </div>
       );
@@ -105,103 +116,128 @@ const Calendar = () => {
     return days;
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "Done": return "badge-teal";
+      case "In Progress": return "badge-blue";
+      case "Pending": return "badge-yellow";
+      default: return "badge-purple";
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Calendar Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-extrabold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 text-gradient">
-            Calendar
-          </h1>
-          <p className="text-xl text-gray-600 font-light">View and manage your tasks by date</p>
+    <div className="min-h-screen bg-dark-primary p-4 sm:p-6 lg:p-8 pt-20 md:pt-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Calendar</h1>
+        <p className="text-gray-500 text-sm sm:text-base">View and manage your tasks by date</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Calendar Grid */}
+        <div className="lg:col-span-2 panel">
+          <div className="flex justify-between items-center mb-6">
+            <button
+              onClick={() => navigateMonth('prev')}
+              className="p-2 hover:bg-dark-card-hover rounded-lg transition-colors text-gray-400 hover:text-white"
+              aria-label="Previous month"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <h2 className="text-lg font-semibold text-white">
+              {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
+            </h2>
+            <button
+              onClick={() => navigateMonth('next')}
+              className="p-2 hover:bg-dark-card-hover rounded-lg transition-colors text-gray-400 hover:text-white"
+              aria-label="Next month"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-0">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
+              <div 
+                key={day} 
+                className={`p-2 sm:p-3 text-center font-medium text-xs sm:text-sm border-b border-dark-border ${
+                  index === 0 || index === 6 ? 'text-accent-coral/70' : 'text-gray-400'
+                }`}
+              >
+                {day}
+              </div>
+            ))}
+            {generateCalendarDays()}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Calendar Grid */}
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
-            <div className="flex justify-between items-center mb-6">
-              <button
-                onClick={() => navigateMonth('prev')}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                ←
-              </button>
-              <h2 className="text-xl font-bold">
-                {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
-              </h2>
-              <button
-                onClick={() => navigateMonth('next')}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                →
-              </button>
+        {/* Tasks for Selected Date */}
+        <div className="panel">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-8 rounded-lg bg-accent-teal/20 flex items-center justify-center">
+              <svg className="w-4 h-4 text-accent-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
             </div>
-
-            <div className="grid grid-cols-7 gap-1">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day,index) => (
-              <div key={day} className={`p-4 text-center font-semibold ${index == 0 || index == 6 ? 'text-red-600':'text-gray-900'}`}>
-                  {day}
-                </div>
-              ))}
-              {generateCalendarDays()}
+            <div>
+              <h3 className="text-lg font-semibold text-white">Tasks</h3>
+              <p className="text-gray-500 text-sm">{selectedDate.toLocaleDateString('default', { weekday: 'long', month: 'short', day: 'numeric' })}</p>
             </div>
           </div>
 
-          {/* Tasks for Selected Date */}
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h3 className="text-xl font-bold mb-6">
-              Tasks for {selectedDate.toLocaleDateString()}
-            </h3>
-
-            <div className="space-y-4">
-              {getTasksForDate(selectedDate).length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  No tasks scheduled for this date
+          <div className="space-y-3">
+            {getTasksForDate(selectedDate).length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 rounded-2xl bg-dark-card-hover flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
                 </div>
-              ) : (
-                getTasksForDate(selectedDate).map(task => (
-                  <div key={task.id} className="border border-gray-200 rounded-xl p-4">
-                    <h4 className="font-semibold mb-2">{task.title}</h4>
-                    <p className="text-sm text-gray-600 mb-4">{task.description}</p>
-                    
-                    <div className="space-y-2">
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          checked={task.status === 'Done'}
-                          onChange={() => updateTaskStatus(task.id, 'Done')}
-                          className="text-green-500"
-                        />
-                        <span className="text-sm">Done</span>
-                      </label>
-                      
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          checked={task.status === 'In Progress'}
-                          onChange={() => updateTaskStatus(task.id, 'In Progress')}
-                          className="text-blue-500"
-                        />
-                        <span className="text-sm">In Progress</span>
-                      </label>
-                      
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          checked={task.status === 'Pending'}
-                          onChange={() => updateTaskStatus(task.id, 'Pending')}
-                          className="text-yellow-500"
-                        />
-                        <span className="text-sm">Pending</span>
-                      </label>
-                    </div>
+                <p className="text-gray-500 text-sm">No tasks scheduled for this date</p>
+              </div>
+            ) : (
+              getTasksForDate(selectedDate).map(task => (
+                <div 
+                  key={task.id} 
+                  className="p-4 bg-dark-card-hover border border-dark-border rounded-xl hover:border-accent-teal/30 transition-all duration-200"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <h4 className="font-medium text-white">{task.title}</h4>
+                    <span className={`badge ${getStatusBadge(task.status)}`}>{task.status}</span>
                   </div>
-                ))
-              )}
-            </div>
+                  {task.description && (
+                    <p className="text-sm text-gray-500 mb-3 line-clamp-2">{task.description}</p>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs text-gray-500">
+                      {task.due_date && (
+                        <span>Due: {new Date(task.due_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setActiveTask(task)}
+                      className="px-3 py-1.5 rounded-lg bg-accent-teal/20 text-accent-teal text-sm font-medium hover:bg-accent-teal/30 transition-colors"
+                    >
+                      Open
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
+
+      <TaskModal
+        task={activeTask}
+        open={!!activeTask}
+        onClose={() => setActiveTask(null)}
+        onStatusChange={updateTaskStatus}
+      />
     </div>
   );
 };

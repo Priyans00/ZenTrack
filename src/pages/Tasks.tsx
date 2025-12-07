@@ -101,243 +101,250 @@ const Tasks = () => {
     );
   });
 
-  const getPriorityIcon = (priority: string) => {
+  const getPriorityBadge = (priority: string) => {
     switch (priority) {
-      case "High": return "🔴";
-      case "Medium": return "🟡";
-      case "Low": return "🟢";
-      default: return "⚪";
+      case "High": return "badge-coral";
+      case "Medium": return "badge-yellow";
+      case "Low": return "badge-teal";
+      default: return "badge-blue";
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case "Done": return "✅";
-      case "In Progress": return "🔄";
-      case "Pending": return "⏳";
-      default: return "📋";
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "High": return "border-red-500 bg-red-50";
-      case "Medium": return "border-yellow-500 bg-yellow-50";
-      case "Low": return "border-green-500 bg-green-50";
-      default: return "border-gray-300 bg-gray-50";
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Done": return "border-l-green-500";
-      case "In Progress": return "border-l-blue-500";
-      case "Pending": return "border-l-yellow-500";
-      default: return "border-l-gray-300";
+      case "Done": return "badge-teal";
+      case "In Progress": return "badge-blue";
+      case "Pending": return "badge-yellow";
+      default: return "badge-purple";
     }
   };
 
   const TasksView = () => (
-    <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Task Form */}
-      <div className="lg:col-span-1">
-        <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
-          <h3 className="text-xl font-bold mb-6 text-gray-800">
-            {editId === null ? "Add New Task" : "Edit Task"}
-          </h3>
-          <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="lg:col-span-1 order-2 lg:order-1">
+        <div className="panel lg:sticky lg:top-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-8 rounded-lg bg-accent-teal/20 flex items-center justify-center">
+              <svg className="w-4 h-4 text-accent-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-white">
+              {editId === null ? "Add New Task" : "Edit Task"}
+            </h3>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Title *</label>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Title *</label>
               <input
                 name="title"
                 value={form.title}
                 onChange={handleChange}
                 placeholder="Enter task title"
                 required
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 outline-none"
+                className="w-full px-4 py-3 bg-dark-card-hover border border-dark-border rounded-xl focus:border-accent-teal focus:ring-1 focus:ring-accent-teal/20 transition-all duration-200 outline-none text-white placeholder-gray-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Description</label>
               <textarea
                 name="description"
                 value={form.description}
                 onChange={handleChange}
                 placeholder="Enter task description"
                 rows={3}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 outline-none resize-none"
+                className="w-full px-4 py-3 bg-dark-card-hover border border-dark-border rounded-xl focus:border-accent-teal focus:ring-1 focus:ring-accent-teal/20 transition-all duration-200 outline-none resize-none text-white placeholder-gray-500"
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Due Date</label>
-                <input
-                  name="due_date"
-                  type="datetime-local"
-                  value={form.due_date || ""}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 outline-none"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Due Date</label>
+              <input
+                name="due_date"
+                type="datetime-local"
+                value={form.due_date || ""}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-dark-card-hover border border-dark-border rounded-xl focus:border-accent-teal focus:ring-1 focus:ring-accent-teal/20 transition-all duration-200 outline-none text-white"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Priority</label>
-                <select name="priority" value={form.priority} onChange={handleChange} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 outline-none">
+                <label className="block text-sm font-medium text-gray-400 mb-2">Priority</label>
+                <select 
+                  name="priority" 
+                  value={form.priority} 
+                  onChange={handleChange} 
+                  className="w-full px-4 py-3 bg-dark-card-hover border border-dark-border rounded-xl focus:border-accent-teal focus:ring-1 focus:ring-accent-teal/20 transition-all duration-200 outline-none text-white"
+                >
                   {priorities.map((p) => (
-                    <option key={p} value={p}>{p}</option>
+                    <option key={p} value={p} className="bg-dark-card">{p}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
-                <select name="status" value={form.status} onChange={handleChange} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 outline-none">
+                <label className="block text-sm font-medium text-gray-400 mb-2">Status</label>
+                <select 
+                  name="status" 
+                  value={form.status} 
+                  onChange={handleChange} 
+                  className="w-full px-4 py-3 bg-dark-card-hover border border-dark-border rounded-xl focus:border-accent-teal focus:ring-1 focus:ring-accent-teal/20 transition-all duration-200 outline-none text-white"
+                >
                   {statuses.map((s) => (
-                    <option key={s} value={s}>{s}</option>
+                    <option key={s} value={s} className="bg-dark-card">{s}</option>
                   ))}
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Tags</label>
+              <label className="block text-sm font-medium text-gray-400 mb-3">Tags</label>
               <div className="flex flex-wrap gap-2">
                 {tagOptions.map((tag) => (
-                  <label key={tag} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.tags.includes(tag)}
-                      onChange={() => handleTagChange(tag)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => handleTagChange(tag)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       form.tags.includes(tag)
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {tag}
-                    </span>
-                  </label>
+                        ? 'bg-accent-teal/20 text-accent-teal border border-accent-teal/50'
+                        : 'bg-dark-card-hover text-gray-400 border border-dark-border hover:border-gray-500'
+                    }`}
+                  >
+                    {tag}
+                  </button>
                 ))}
               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 rounded-xl font-bold hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
+              className="w-full bg-accent-teal hover:bg-accent-teal/90 text-dark-primary py-3.5 rounded-xl font-semibold transition-all duration-200 text-sm"
             >
               {editId === null ? "Add Task" : "Update Task"}
             </button>
+            
+            {editId !== null && (
+              <button
+                type="button"
+                onClick={() => { setEditId(null); setForm(defaultTask); }}
+                className="w-full bg-dark-card-hover hover:bg-dark-border text-gray-400 py-3 rounded-xl font-medium transition-all duration-200 text-sm"
+              >
+                Cancel Edit
+              </button>
+            )}
           </form>
         </div>
       </div>
 
       {/* Tasks List */}
-      <div className="lg:col-span-2">
+      <div className="lg:col-span-2 order-1 lg:order-2">
         {/* Filters */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-          <h3 className="text-lg font-bold mb-4 text-gray-800">Filter Tasks</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="panel mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-accent-purple/20 flex items-center justify-center">
+              <svg className="w-4 h-4 text-accent-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-white">Filter Tasks</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <select
               value={filter.status}
               onChange={(e) => setFilter(f => ({ ...f, status: e.target.value }))}
-              className="px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 outline-none"
+              className="px-4 py-2.5 bg-dark-card-hover border border-dark-border rounded-lg focus:border-accent-teal outline-none text-white text-sm"
             >
-              <option value="">All Status</option>
-              {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
+              <option value="" className="bg-dark-card">All Status</option>
+              {statuses.map((s) => <option key={s} value={s} className="bg-dark-card">{s}</option>)}
             </select>
             <select
               value={filter.priority}
               onChange={(e) => setFilter(f => ({ ...f, priority: e.target.value }))}
-              className="px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 outline-none"
+              className="px-4 py-2.5 bg-dark-card-hover border border-dark-border rounded-lg focus:border-accent-teal outline-none text-white text-sm"
             >
-              <option value="">All Priority</option>
-              {priorities.map((p) => <option key={p} value={p}>{p}</option>)}
+              <option value="" className="bg-dark-card">All Priority</option>
+              {priorities.map((p) => <option key={p} value={p} className="bg-dark-card">{p}</option>)}
             </select>
             <select
               value={filter.tag}
               onChange={(e) => setFilter(f => ({ ...f, tag: e.target.value }))}
-              className="px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 outline-none"
+              className="px-4 py-2.5 bg-dark-card-hover border border-dark-border rounded-lg focus:border-accent-teal outline-none text-white text-sm"
             >
-              <option value="">All Tags</option>
-              {tagOptions.map((t) => <option key={t} value={t}>{t}</option>)}
+              <option value="" className="bg-dark-card">All Tags</option>
+              {tagOptions.map((t) => <option key={t} value={t} className="bg-dark-card">{t}</option>)}
             </select>
           </div>
         </div>
 
         {/* Task List */}
-        <div className="space-y-6">
+        <div className="space-y-3">
           {filteredTasks.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">📋</div>
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">No tasks found</h3>
-              <p className="text-gray-500">Create your first task to get started!</p>
+            <div className="panel text-center py-12">
+              <div className="w-16 h-16 rounded-2xl bg-dark-card-hover flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">No tasks found</h3>
+              <p className="text-gray-500 text-sm">Create your first task to get started!</p>
             </div>
           ) : (
             filteredTasks.map((task) => (
               <div
                 key={task.id}
-                className={`bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 border-l-4 ${getStatusColor(task.status)}`}
+                className="panel hover:border-dark-border transition-all duration-200 group"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">{getStatusIcon(task.status)}</span>
-                    <div>
-                      <h4 className="text-xl font-bold text-gray-800">{task.title}</h4>
-                      <p className="text-gray-600 mt-1">{task.description}</p>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h4 className="text-white font-medium truncate">{task.title}</h4>
+                      <span className={`badge ${getPriorityBadge(task.priority)} shrink-0`}>
+                        {task.priority}
+                      </span>
+                    </div>
+                    {task.description && (
+                      <p className="text-gray-500 text-sm mb-3 line-clamp-2">{task.description}</p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`badge ${getStatusBadge(task.status)}`}>{task.status}</span>
+                      {task.due_date && (
+                        <span className="text-gray-500 text-xs flex items-center gap-1">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          {new Date(task.due_date).toLocaleDateString()}
+                        </span>
+                      )}
+                      {task.tags.map((tag) => (
+                        <span key={tag} className="badge badge-purple">{tag}</span>
+                      ))}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${getPriorityColor(task.priority)}`}>
-                      {getPriorityIcon(task.priority)} {task.priority}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-between">
-                  <div className="flex items-center space-x-4 mb-2">
-                    {task.due_date && (
-                      <span className="text-sm text-gray-500">
-                        📅 Due: {new Date(task.due_date).toLocaleDateString()}
-                      </span>
-                    )}
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      task.status === 'Done' ? 'bg-green-100 text-green-800' :
-                      task.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {task.status}
-                    </span>
-                  </div>
-
-                  <div className="flex space-x-2">
+                  
+                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <button
                       onClick={() => handleEdit(task)}
-                      className="px-4 py-2 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors font-medium"
+                      className="p-2 bg-accent-blue/20 text-accent-blue rounded-lg hover:bg-accent-blue/30 transition-colors"
+                      title="Edit"
                     >
-                      Edit
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
                     </button>
                     <button
                       onClick={() => handleDelete(task.id)}
-                      className="px-4 py-2 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 transition-colors font-medium"
+                      className="p-2 bg-accent-coral/20 text-accent-coral rounded-lg hover:bg-accent-coral/30 transition-colors"
+                      title="Delete"
                     >
-                      Delete
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
                     </button>
                   </div>
                 </div>
-
-                {task.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {task.tags.map((tag) => (
-                      <span key={tag} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
               </div>
             ))
           )}
@@ -347,42 +354,49 @@ const Tasks = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8">
-      <div className="text-center mb-8">
-        <h1 className="text-5xl font-extrabold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 text-gradient">
-          {activeTab === 'tasks' ? 'Task Manager' : 'Daily Checklist'}
-        </h1>
-        <p className="text-xl text-gray-600 font-light">
-          {activeTab === 'tasks' 
-            ? 'Organize your tasks with priorities, tags, and deadlines' 
-            : 'Stay on top of your daily tasks and habits'
-          }
-        </p>
-      </div>
-
-      {/* Toggle Switch */}
-      <div className="flex justify-center mb-8">
-        <div className="bg-white rounded-full p-1 shadow-lg border">
-          <div className="flex">
+    <div className="min-h-screen bg-dark-primary p-4 sm:p-6 lg:p-8 pt-20 md:pt-8">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">
+              {activeTab === 'tasks' ? 'Task Manager' : 'Daily Checklist'}
+            </h1>
+            <p className="text-gray-500 text-sm sm:text-base">
+              {activeTab === 'tasks' 
+                ? 'Organize your tasks with priorities, tags, and deadlines' 
+                : 'Stay on top of your daily tasks and habits'
+              }
+            </p>
+          </div>
+          
+          {/* Tab Switcher */}
+          <div className="flex bg-dark-card rounded-xl p-1 border border-dark-border">
             <button
               onClick={() => setActiveTab('tasks')}
-              className={`px-6 py-3 rounded-full font-semibold text-sm transition-all duration-300 ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
                 activeTab === 'tasks'
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
-                  : 'text-gray-600 hover:text-gray-800'
+                  ? 'bg-accent-teal text-dark-primary'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
-              📋 Tasks
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              Tasks
             </button>
             <button
               onClick={() => setActiveTab('daily')}
-              className={`px-6 py-3 rounded-full font-semibold text-sm transition-all duration-300 ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
                 activeTab === 'daily'
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
-                  : 'text-gray-600 hover:text-gray-800'
+                  ? 'bg-accent-teal text-dark-primary'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
-              ✅ Daily Todos
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Daily
             </button>
           </div>
         </div>
