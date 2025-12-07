@@ -9,9 +9,9 @@ import About from "./pages/About";
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex bg-dark-primary">
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen">
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/tasks" element={<Tasks />} />
