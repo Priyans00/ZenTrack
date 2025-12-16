@@ -1,9 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
+import { useTheme } from '../context/ThemeContext';
 
 const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: (
@@ -41,15 +43,25 @@ const Navbar = () => {
   return (
     <>
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-dark-secondary border-b border-dark-border z-50 flex items-center justify-between px-4">
+      <div 
+        className="md:hidden fixed top-0 left-0 right-0 h-16 z-50 flex items-center justify-between px-4"
+        style={{ 
+          backgroundColor: 'var(--bg-secondary)', 
+          borderBottom: '1px solid var(--border-color)' 
+        }}
+      >
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-accent-teal/20 flex items-center justify-center">
-            <span className="text-accent-teal font-bold text-sm">Z</span>
+          <div 
+            className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ backgroundColor: 'var(--accent)' }}
+          >
+            <span className="font-bold text-sm text-black">Z</span>
           </div>
-          <span className="text-white font-semibold text-lg">ZenTrack</span>
+          <span style={{ color: 'var(--text-primary)' }} className="font-semibold text-lg">ZenTrack</span>
         </Link>
         <button 
-          className="text-white p-2 hover:bg-dark-card rounded-lg transition-colors"
+          className="p-2 rounded-lg transition-colors"
+          style={{ color: 'var(--text-primary)' }}
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-label="Toggle menu"
         >
@@ -68,21 +80,29 @@ const Navbar = () => {
       {/* Mobile Menu Overlay */}
       {isMenuOpen && (
         <div 
-          className="md:hidden fixed inset-0 bg-black/50 z-40 pt-16"
+          className="md:hidden fixed inset-0 z-40 pt-16"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
           onClick={() => setIsMenuOpen(false)}
         >
-          <nav className="bg-dark-secondary border-r border-dark-border h-full w-64 py-4" onClick={e => e.stopPropagation()}>
+          <nav 
+            className="h-full w-64 py-4"
+            style={{ 
+              backgroundColor: 'var(--bg-secondary)', 
+              borderRight: '1px solid var(--border-color)' 
+            }} 
+            onClick={e => e.stopPropagation()}
+          >
             <div className="px-3 space-y-1">
               {navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                    location.pathname === item.path 
-                      ? 'bg-accent-teal/10 text-accent-teal' 
-                      : 'text-gray-400 hover:text-white hover:bg-dark-card'
-                  }`}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200"
+                  style={{
+                    backgroundColor: location.pathname === item.path ? 'var(--accent-dim)' : 'transparent',
+                    color: location.pathname === item.path ? 'var(--accent)' : 'var(--text-secondary)',
+                  }}
                 >
                   {item.icon}
                   <span className="font-medium">{item.label}</span>
@@ -94,36 +114,61 @@ const Navbar = () => {
       )}
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex fixed left-0 top-0 h-screen w-64 bg-dark-secondary border-r border-dark-border flex-col z-50">
+      <aside 
+        className="hidden md:flex fixed left-0 top-0 h-screen w-64 flex-col z-50 overflow-hidden"
+        style={{ 
+          backgroundColor: 'var(--bg-secondary)', 
+          borderRight: '1px solid var(--border-color)' 
+        }}
+      >
         {/* Logo Section */}
-        <div className="p-6 border-b border-dark-border">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-accent-teal/20 flex items-center justify-center">
-              <span className="text-accent-teal font-bold text-xl">Z</span>
+        <div className="p-6" style={{ borderBottom: '1px solid var(--border-color)' }}>
+          <Link to="/" className="flex items-center gap-3 group">
+            <div 
+              className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:shadow-lg"
+              style={{ 
+                backgroundColor: 'var(--accent)',
+                boxShadow: 'none',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 20px var(--accent-glow)'}
+              onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+            >
+              <span className="font-bold text-xl text-black">Z</span>
             </div>
             <div>
-              <span className="text-white font-bold text-xl">Zen</span>
-              <span className="text-accent-teal font-bold text-xl">Track</span>
+              <span className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Zen</span>
+              <span className="font-bold text-lg" style={{ color: 'var(--accent)' }}>Track</span>
             </div>
           </Link>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-6 px-3 overflow-y-auto">
+        <nav className="flex-1 py-6 px-3 overflow-y-auto scrollbar-thin">
           <div className="space-y-1">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                  location.pathname === item.path 
-                    ? 'bg-accent-teal/10 text-accent-teal border-l-2 border-accent-teal' 
-                    : 'text-gray-400 hover:text-white hover:bg-dark-card border-l-2 border-transparent'
-                }`}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group"
+                style={{
+                  backgroundColor: location.pathname === item.path ? 'var(--accent-dim)' : 'transparent',
+                  color: location.pathname === item.path ? 'var(--accent)' : 'var(--text-secondary)',
+                  borderLeft: location.pathname === item.path ? '2px solid var(--accent)' : '2px solid transparent',
+                }}
+                onMouseEnter={(e) => {
+                  if (location.pathname !== item.path) {
+                    e.currentTarget.style.backgroundColor = 'var(--bg-card-hover)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (location.pathname !== item.path) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                  }
+                }}
               >
-                <span className={`${location.pathname === item.path ? 'text-accent-teal' : 'text-gray-500 group-hover:text-white'}`}>
-                  {item.icon}
-                </span>
+                {item.icon}
                 <span className="font-medium">{item.label}</span>
               </Link>
             ))}
@@ -131,14 +176,46 @@ const Navbar = () => {
         </nav>
 
         {/* User Section */}
-        <div className="p-4 border-t border-dark-border">
-          <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-10 h-10 rounded-full bg-accent-blue flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">U</span>
+        <div className="p-4 space-y-3" style={{ borderTop: '1px solid var(--border-color)' }}>
+          <button
+            onClick={toggleTheme}
+            className="w-full px-3 py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+            style={{ 
+              backgroundColor: 'var(--bg-card)', 
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-color)'
+            }}
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          >
+            {theme === 'dark' ? (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <span className="text-sm font-medium">Light</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+                <span className="text-sm font-medium">Dark</span>
+              </>
+            )}
+          </button>
+          <div 
+            className="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer"
+            style={{ backgroundColor: 'var(--bg-card-hover)' }}
+          >
+            <div 
+              className="w-10 h-10 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: 'var(--accent)' }}
+            >
+              <span className="font-semibold text-sm text-black">U</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white font-medium text-sm truncate">User</p>
-              <p className="text-gray-500 text-xs truncate">Local Session</p>
+              <p className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>User</p>
+              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>Local Session</p>
             </div>
           </div>
         </div>

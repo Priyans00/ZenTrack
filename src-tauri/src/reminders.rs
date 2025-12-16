@@ -22,6 +22,7 @@ pub struct Reminder {
 #[derive(Debug)]
 struct PendingReminderRow {
     id: i64,
+    #[allow(dead_code)]
     task_id: i64,
     remind_at: String,
     title: String,

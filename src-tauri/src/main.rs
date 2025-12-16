@@ -20,6 +20,26 @@ pub struct Task {
     pub status: String,   // e.g., "Pending", "In Progress", "Done"
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+pub struct TimeEntry {
+    pub id: i64,
+    pub task: String,
+    pub start_time: String,
+    pub end_time: Option<String>,
+    pub duration: i64,
+    pub category: String,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Expense {
+    pub id: i64,
+    pub amount: f64,
+    pub description: String,
+    pub category: String,
+    pub date: String,
+    pub expense_type: String, // "expense" or "income"
+}
+
 #[derive(Clone)]
 struct DatabaseConnection(Arc<Mutex<Connection>>);
 
@@ -56,6 +76,34 @@ fn init_database() -> SqliteResult<Connection> {
             tags TEXT NOT NULL,
             priority TEXT NOT NULL,
             status TEXT NOT NULL
+        )",
+        [],
+    )?;
+
+    // Create time_entries table if it doesn't exist
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS time_entries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task TEXT NOT NULL,
+            start_time TEXT NOT NULL,
+            end_time TEXT,
+            duration INTEGER NOT NULL,
+            category TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )",
+        [],
+    )?;
+
+    // Create expenses table if it doesn't exist
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS expenses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            amount REAL NOT NULL,
+            description TEXT NOT NULL,
+            category TEXT NOT NULL,
+            date TEXT NOT NULL,
+            expense_type TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )",
         [],
     )?;
@@ -184,6 +232,254 @@ fn delete_reminder(state: State<'_, DatabaseConnection>, reminder_id: i64) -> Re
     reminders::delete_reminder(&conn, reminder_id)
 }
 
+// TimeTracker Commands
+#[tauri::command]
+fn get_time_entries(state: State<'_, DatabaseConnection>) -> Result<Vec<TimeEntry>, String> {
+    let conn = state.0.lock().map_err(|e| e.to_string())?;
+    let mut stmt = conn
+        .prepare("SELECT id, task, start_time, end_time, duration, category FROM time_entries ORDER BY start_time DESC")
+        .map_err(|e| e.to_string())?;
+
+    let entries = stmt
+        .query_map([], |row| {
+            Ok(TimeEntry {
+                id: row.get(0)?,
+                task: row.get(1)?,
+                start_time: row.get(2)?,
+                end_time: row.get(3)?,
+                duration: row.get(4)?,
+                category: row.get(5)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    entries.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn add_time_entry(state: State<'_, DatabaseConnection>, entry: TimeEntry) -> Result<Vec<TimeEntry>, String> {
+    let conn = state.0.lock().map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "INSERT INTO time_entries (task, start_time, end_time, duration, category) VALUES (?1, ?2, ?3, ?4, ?5)",
+        rusqlite::params![
+            &entry.task,
+            &entry.start_time,
+            &entry.end_time,
+            entry.duration,
+            &entry.category
+        ],
+    )
+    .map_err(|e| e.to_string())?;
+
+    let mut stmt = conn
+        .prepare("SELECT id, task, start_time, end_time, duration, category FROM time_entries ORDER BY start_time DESC")
+        .map_err(|e| e.to_string())?;
+
+    let entries = stmt
+        .query_map([], |row| {
+            Ok(TimeEntry {
+                id: row.get(0)?,
+                task: row.get(1)?,
+                start_time: row.get(2)?,
+                end_time: row.get(3)?,
+                duration: row.get(4)?,
+                category: row.get(5)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    entries.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn update_time_entry(state: State<'_, DatabaseConnection>, entry: TimeEntry) -> Result<Vec<TimeEntry>, String> {
+    let conn = state.0.lock().map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "UPDATE time_entries SET task = ?1, start_time = ?2, end_time = ?3, duration = ?4, category = ?5 WHERE id = ?6",
+        rusqlite::params![
+            &entry.task,
+            &entry.start_time,
+            &entry.end_time,
+            entry.duration,
+            &entry.category,
+            entry.id
+        ],
+    )
+    .map_err(|e| e.to_string())?;
+
+    let mut stmt = conn
+        .prepare("SELECT id, task, start_time, end_time, duration, category FROM time_entries ORDER BY start_time DESC")
+        .map_err(|e| e.to_string())?;
+
+    let entries = stmt
+        .query_map([], |row| {
+            Ok(TimeEntry {
+                id: row.get(0)?,
+                task: row.get(1)?,
+                start_time: row.get(2)?,
+                end_time: row.get(3)?,
+                duration: row.get(4)?,
+                category: row.get(5)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    entries.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn delete_time_entry(state: State<'_, DatabaseConnection>, id: i64) -> Result<Vec<TimeEntry>, String> {
+    let conn = state.0.lock().map_err(|e| e.to_string())?;
+
+    conn.execute("DELETE FROM time_entries WHERE id = ?1", rusqlite::params![id])
+        .map_err(|e| e.to_string())?;
+
+    let mut stmt = conn
+        .prepare("SELECT id, task, start_time, end_time, duration, category FROM time_entries ORDER BY start_time DESC")
+        .map_err(|e| e.to_string())?;
+
+    let entries = stmt
+        .query_map([], |row| {
+            Ok(TimeEntry {
+                id: row.get(0)?,
+                task: row.get(1)?,
+                start_time: row.get(2)?,
+                end_time: row.get(3)?,
+                duration: row.get(4)?,
+                category: row.get(5)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    entries.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+// Spending Commands
+#[tauri::command]
+fn get_expenses(state: State<'_, DatabaseConnection>) -> Result<Vec<Expense>, String> {
+    let conn = state.0.lock().map_err(|e| e.to_string())?;
+    let mut stmt = conn
+        .prepare("SELECT id, amount, description, category, date, expense_type FROM expenses ORDER BY date DESC")
+        .map_err(|e| e.to_string())?;
+
+    let expenses = stmt
+        .query_map([], |row| {
+            Ok(Expense {
+                id: row.get(0)?,
+                amount: row.get(1)?,
+                description: row.get(2)?,
+                category: row.get(3)?,
+                date: row.get(4)?,
+                expense_type: row.get(5)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    expenses.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn add_expense(state: State<'_, DatabaseConnection>, expense: Expense) -> Result<Vec<Expense>, String> {
+    let conn = state.0.lock().map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "INSERT INTO expenses (amount, description, category, date, expense_type) VALUES (?1, ?2, ?3, ?4, ?5)",
+        rusqlite::params![
+            expense.amount,
+            &expense.description,
+            &expense.category,
+            &expense.date,
+            &expense.expense_type
+        ],
+    )
+    .map_err(|e| e.to_string())?;
+
+    let mut stmt = conn
+        .prepare("SELECT id, amount, description, category, date, expense_type FROM expenses ORDER BY date DESC")
+        .map_err(|e| e.to_string())?;
+
+    let expenses = stmt
+        .query_map([], |row| {
+            Ok(Expense {
+                id: row.get(0)?,
+                amount: row.get(1)?,
+                description: row.get(2)?,
+                category: row.get(3)?,
+                date: row.get(4)?,
+                expense_type: row.get(5)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    expenses.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn update_expense(state: State<'_, DatabaseConnection>, expense: Expense) -> Result<Vec<Expense>, String> {
+    let conn = state.0.lock().map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "UPDATE expenses SET amount = ?1, description = ?2, category = ?3, date = ?4, expense_type = ?5 WHERE id = ?6",
+        rusqlite::params![
+            expense.amount,
+            &expense.description,
+            &expense.category,
+            &expense.date,
+            &expense.expense_type,
+            expense.id
+        ],
+    )
+    .map_err(|e| e.to_string())?;
+
+    let mut stmt = conn
+        .prepare("SELECT id, amount, description, category, date, expense_type FROM expenses ORDER BY date DESC")
+        .map_err(|e| e.to_string())?;
+
+    let expenses = stmt
+        .query_map([], |row| {
+            Ok(Expense {
+                id: row.get(0)?,
+                amount: row.get(1)?,
+                description: row.get(2)?,
+                category: row.get(3)?,
+                date: row.get(4)?,
+                expense_type: row.get(5)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    expenses.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn delete_expense(state: State<'_, DatabaseConnection>, id: i64) -> Result<Vec<Expense>, String> {
+    let conn = state.0.lock().map_err(|e| e.to_string())?;
+
+    conn.execute("DELETE FROM expenses WHERE id = ?1", rusqlite::params![id])
+        .map_err(|e| e.to_string())?;
+
+    let mut stmt = conn
+        .prepare("SELECT id, amount, description, category, date, expense_type FROM expenses ORDER BY date DESC")
+        .map_err(|e| e.to_string())?;
+
+    let expenses = stmt
+        .query_map([], |row| {
+            Ok(Expense {
+                id: row.get(0)?,
+                amount: row.get(1)?,
+                description: row.get(2)?,
+                category: row.get(3)?,
+                date: row.get(4)?,
+                expense_type: row.get(5)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    expenses.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
 fn main() {
     let conn = init_database().expect("Failed to initialize database");
     let db_state = DatabaseConnection(Arc::new(Mutex::new(conn)));
@@ -205,7 +501,15 @@ fn main() {
             delete_task,
             create_reminder,
             get_reminders_for_task,
-            delete_reminder
+            delete_reminder,
+            get_time_entries,
+            add_time_entry,
+            update_time_entry,
+            delete_time_entry,
+            get_expenses,
+            add_expense,
+            update_expense,
+            delete_expense
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

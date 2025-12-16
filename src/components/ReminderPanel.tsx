@@ -68,18 +68,41 @@ export default function ReminderPanel({ taskId, dueDate }: Props) {
   };
 
   return (
-    <div className="rounded-xl border border-dark-600 bg-dark-700/50 p-4">
+    <div 
+      className="rounded-xl p-4"
+      style={{ 
+        backgroundColor: 'var(--bg-card)', 
+        border: '1px solid var(--border)' 
+      }}
+    >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-purple-500/20">
-            <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div 
+            className="p-2 rounded-lg"
+            style={{ backgroundColor: 'rgba(255, 107, 53, 0.2)' }}
+          >
+            <svg 
+              className="w-4 h-4" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+              style={{ color: 'var(--accent)' }}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
           </div>
-          <h3 className="text-base font-semibold text-white">Reminders</h3>
+          <h3 
+            className="text-base font-semibold"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            Reminders
+          </h3>
         </div>
         {loading && (
-          <span className="text-xs text-dark-400 flex items-center gap-1">
+          <span 
+            className="text-xs flex items-center gap-1"
+            style={{ color: 'var(--text-muted)' }}
+          >
             <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -97,7 +120,12 @@ export default function ReminderPanel({ taskId, dueDate }: Props) {
             type="button"
             onClick={() => handlePreset(preset.minutes)}
             disabled={!canUsePresets}
-            className="rounded-lg border border-dark-600 bg-dark-700 px-3 py-2 text-sm font-medium text-dark-200 hover:bg-dark-600 hover:border-dark-500 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="rounded-lg px-3 py-2 text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ 
+              backgroundColor: 'var(--bg-secondary)', 
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border)'
+            }}
           >
             {preset.label}
           </button>
@@ -110,12 +138,12 @@ export default function ReminderPanel({ taskId, dueDate }: Props) {
           type="datetime-local"
           value={customInput}
           onChange={(e) => setCustomInput(e.target.value)}
-          className="flex-1 rounded-lg border border-dark-600 bg-dark-800 px-3 py-2 text-sm text-white placeholder-dark-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
+          className="input flex-1"
         />
         <button
           type="button"
           onClick={handleCustomAdd}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all"
+          className="btn-primary"
         >
           Add custom
         </button>
@@ -123,7 +151,14 @@ export default function ReminderPanel({ taskId, dueDate }: Props) {
 
       {/* Error message */}
       {error && (
-        <div className="flex items-center gap-2 text-sm text-rose-400 mb-3 bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2">
+        <div 
+          className="flex items-center gap-2 text-sm mb-3 rounded-lg px-3 py-2"
+          style={{ 
+            color: 'var(--danger)', 
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.2)'
+          }}
+        >
           <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -135,42 +170,85 @@ export default function ReminderPanel({ taskId, dueDate }: Props) {
       <div className="space-y-2">
         {reminders.length === 0 ? (
           <div className="text-center py-4">
-            <svg className="w-8 h-8 text-dark-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg 
+              className="w-8 h-8 mx-auto mb-2" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+              style={{ color: 'var(--text-muted)' }}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
-            <p className="text-sm text-dark-500">No reminders set</p>
+            <p 
+              className="text-sm"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              No reminders set
+            </p>
           </div>
         ) : (
           reminders.map((reminder) => (
             <div
               key={reminder.id}
-              className="flex items-center justify-between rounded-lg border border-dark-600 bg-dark-700 px-4 py-3 group hover:border-dark-500 transition-all"
+              className="flex items-center justify-between rounded-lg px-4 py-3 group transition-all"
+              style={{ 
+                backgroundColor: 'var(--bg-secondary)', 
+                border: '1px solid var(--border)' 
+              }}
             >
               <div className="flex items-center gap-3">
-                <div className={`p-1.5 rounded-lg ${reminder.triggered ? 'bg-emerald-500/20' : 'bg-blue-500/20'}`}>
+                <div 
+                  className="p-1.5 rounded-lg"
+                  style={{ 
+                    backgroundColor: reminder.triggered 
+                      ? 'rgba(16, 185, 129, 0.2)' 
+                      : 'rgba(255, 107, 53, 0.2)' 
+                  }}
+                >
                   {reminder.triggered ? (
-                    <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg 
+                      className="w-4 h-4" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                      style={{ color: 'var(--success)' }}
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   ) : (
-                    <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg 
+                      className="w-4 h-4" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                      style={{ color: 'var(--accent)' }}
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   )}
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-white">
+                  <span 
+                    className="text-sm font-medium"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
                     {formatDate(reminder.remind_at)}
                   </span>
                   {reminder.triggered && (
-                    <span className="text-xs text-emerald-400">Sent</span>
+                    <span 
+                      className="text-xs"
+                      style={{ color: 'var(--success)' }}
+                    >
+                      Sent
+                    </span>
                   )}
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => remove(reminder.id, taskId)}
-                className="text-sm text-dark-400 hover:text-rose-400 font-medium transition-colors opacity-0 group-hover:opacity-100"
+                className="text-sm font-medium transition-colors opacity-0 group-hover:opacity-100"
+                style={{ color: 'var(--danger)' }}
               >
                 Delete
               </button>
