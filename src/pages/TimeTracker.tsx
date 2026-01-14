@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { useAppStore } from '../state/appStore';
 
 type TimeEntry = {
   id: number;
@@ -11,6 +12,8 @@ type TimeEntry = {
 };
 
 const TimeTracker = () => {
+  const { pendingSession, clearPendingSession, updateStreak } = useAppStore();
+  
   const [isTracking, setIsTracking] = useState(false);
   const [currentTask, setCurrentTask] = useState('');
   const [currentCategory, setCurrentCategory] = useState('Work');
@@ -18,6 +21,9 @@ const TimeTracker = () => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Track if we've already processed the pending session
+  const pendingProcessedRef = useRef(false);
 
   const categories = ['Work', 'Study', 'Exercise', 'Personal', 'Meetings', 'Break', 'Other'];
 
@@ -36,6 +42,28 @@ const TimeTracker = () => {
   useEffect(() => {
     loadTimeEntries();
   }, []);
+
+  // Handle pending session from Focus Card
+  useEffect(() => {
+    if (pendingSession && pendingSession.autoStart && !isTracking && !pendingProcessedRef.current) {
+      pendingProcessedRef.current = true;
+      
+      // Set the task and category
+      setCurrentTask(pendingSession.taskName);
+      setCurrentCategory(pendingSession.category);
+      
+      // Auto-start the timer after a brief delay to let state settle
+      setTimeout(() => {
+        const now = new Date();
+        setStartTime(now);
+        setElapsedTime(0);
+        setIsTracking(true);
+        
+        // Clear the pending session
+        clearPendingSession();
+      }, 100);
+    }
+  }, [pendingSession, isTracking, clearPendingSession]);
 
   useEffect(() => {
     let interval: number;
@@ -72,6 +100,15 @@ const TimeTracker = () => {
       
       const updatedEntries = await invoke<TimeEntry[]>('add_time_entry', { entry: newEntry });
       setTimeEntries(updatedEntries);
+      
+      // Update study streak if this was a Study session
+      if (currentCategory === 'Study') {
+        updateStreak(true);
+      }
+      
+      // Reset pending processed flag for future sessions
+      pendingProcessedRef.current = false;
+      
       setIsTracking(false);
       setCurrentTask('');
       setElapsedTime(0);

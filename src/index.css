@@ -348,3 +348,152 @@ p {
 .animate-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
+
+/* ============================================================================
+   Stress-Aware UI Adaptation
+   
+   When workload is high, the UI becomes calmer to reduce anxiety.
+   Uses CSS custom properties that get toggled by JS based on stress level.
+   ============================================================================ */
+
+/* High stress mode - calmer colors, less contrast */
+html.stress-high {
+  --accent: #94a3b8;
+  --accent-dim: rgba(148, 163, 184, 0.1);
+  --accent-hover: #a0aec0;
+  --accent-glow: rgba(148, 163, 184, 0.2);
+  --danger: #94a3b8;
+  --warning: #94a3b8;
+}
+
+html.stress-high .panel:hover {
+  border-color: var(--border-color);
+  box-shadow: none;
+}
+
+html.stress-high .stat-card:hover {
+  border-color: var(--border-color);
+  box-shadow: none;
+}
+
+/* Overwhelming stress - maximum calm */
+html.stress-overwhelming {
+  --accent: #64748b;
+  --accent-dim: rgba(100, 116, 139, 0.08);
+  --accent-hover: #718096;
+  --accent-glow: rgba(100, 116, 139, 0.15);
+  --danger: #64748b;
+  --warning: #64748b;
+  --success: #64748b;
+}
+
+html.stress-overwhelming .panel:hover,
+html.stress-overwhelming .stat-card:hover {
+  border-color: var(--border-color);
+  box-shadow: none;
+  transform: none;
+}
+
+html.stress-overwhelming .animate-glow,
+html.stress-overwhelming .animate-pulse {
+  animation: none;
+}
+
+/* Exam mode specific styles */
+html.exam-mode .badge-primary {
+  background-color: var(--accent-dim);
+  color: var(--accent);
+}
+
+html.exam-mode-active {
+  --bg-primary: #050505;
+  --bg-secondary: #0a0a0a;
+}
+
+/* Focus card special states */
+.focus-card-critical {
+  border-left: 3px solid var(--danger);
+}
+
+.focus-card-high {
+  border-left: 3px solid var(--warning);
+}
+
+.focus-card-medium {
+  border-left: 3px solid var(--accent);
+}
+
+/* Streak fire animation */
+@keyframes flame {
+  0%, 100% {
+    transform: scale(1) rotate(-2deg);
+  }
+  50% {
+    transform: scale(1.05) rotate(2deg);
+  }
+}
+
+.animate-flame {
+  animation: flame 0.5s ease-in-out infinite;
+}
+
+/* Survival plan chunk animation */
+@keyframes chunk-complete {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.chunk-complete {
+  animation: chunk-complete 0.3s ease-out;
+}
+
+/* Semester view week highlight */
+.week-current {
+  position: relative;
+}
+
+.week-current::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 0 2px 2px 0;
+}
+
+/* Study session timer glow */
+.timer-active {
+  box-shadow: 0 0 30px var(--accent-glow);
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Exam mode hidden elements */
+html.exam-mode .exam-hide {
+  display: none !important;
+}
+
+/* Smooth transitions for stress level changes */
+:root {
+  transition: 
+    --accent 0.5s ease,
+    --accent-dim 0.5s ease,
+    --accent-hover 0.5s ease,
+    --accent-glow 0.5s ease;
+}
+

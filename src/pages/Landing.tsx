@@ -1,6 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { invoke } from "@tauri-apps/api/core";
+import { useAppStore } from '../state/appStore';
+import FocusCard from '../components/FocusCard';
+import TimeRealityCheck from '../components/TimeRealityCheck';
+import StudyStreak from '../components/StudyStreak';
+import { UrgentTasksPanel } from '../components/DeadlinePanicShield';
+import { ExamModeBanner } from '../components/ExamMode';
 
 type Task = {
   id: number;
@@ -16,6 +22,7 @@ const Landing = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [timeEntries, setTimeEntries] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
+  const { examModeEnabled } = useAppStore();
 
   useEffect(() => {
     invoke<Task[]>("get_tasks").then(setTasks).catch(console.error);
@@ -66,6 +73,18 @@ const Landing = () => {
       title: 'Task Management',
       description: 'Organize your tasks with priorities, tags, and deadlines.',
       link: '/tasks',
+      examHide: false,
+    },
+    {
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+      ),
+      title: 'Semester View',
+      description: 'See your academic load week by week across the semester.',
+      link: '/semester',
+      examHide: false,
     },
     {
       icon: (
@@ -76,6 +95,7 @@ const Landing = () => {
       title: 'Time Tracking',
       description: 'Track time spent on activities and boost productivity.',
       link: '/time',
+      examHide: false,
     },
     {
       icon: (
@@ -86,6 +106,7 @@ const Landing = () => {
       title: 'Expense Tracking',
       description: 'Monitor your spending and manage your budget effectively.',
       link: '/spend',
+      examHide: true,
     },
     {
       icon: (
@@ -96,8 +117,14 @@ const Landing = () => {
       title: 'Analytics',
       description: 'Get insights into your productivity and spending patterns.',
       link: '/about',
+      examHide: true,
     }
   ];
+
+  // Filter features based on exam mode
+  const visibleFeatures = examModeEnabled 
+    ? features.filter(f => !f.examHide)
+    : features;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -128,6 +155,32 @@ const Landing = () => {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Exam Mode Banner */}
+      <ExamModeBanner />
+
+      {/* Student Focus Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+        {/* Focus Card - What to study now */}
+        <div className="lg:col-span-2">
+          <FocusCard />
+        </div>
+        
+        {/* Study Streak */}
+        <div>
+          <StudyStreak />
+        </div>
+      </div>
+
+      {/* Urgent Tasks & Time Reality Check */}
+      <div className="mb-8">
+        <TimeRealityCheck />
+      </div>
+      
+      {/* Urgent Tasks Panel - only shows when there are urgent tasks */}
+      <div className="mb-8">
+        <UrgentTasksPanel />
       </div>
 
       {/* Stats Grid */}
@@ -183,6 +236,7 @@ const Landing = () => {
           </p>
         </div>
 
+        {!examModeEnabled && (
         <div className="stat-card">
           <div className="flex items-start justify-between mb-3">
             <div>
@@ -201,6 +255,7 @@ const Landing = () => {
             {expenses.length} transactions
           </p>
         </div>
+        )}
       </div>
 
       {/* Main Content Grid */}
@@ -297,7 +352,7 @@ const Landing = () => {
       <div className="mb-6">
         <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {features.map((feature, index) => (
+          {visibleFeatures.map((feature, index) => (
             <Link
               key={index}
               to={feature.link}

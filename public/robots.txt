@@ -1,0 +1,9 @@
+# ZenTrack Robots.txt
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://zentrack.app/sitemap.xml
+
+# Crawl-delay (optional, for rate limiting)
+Crawl-delay: 1
