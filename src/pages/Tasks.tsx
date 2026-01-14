@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import DailyChecklist from "../components/DailyChecklist";
+import SmartTaskInput from "../components/SmartTaskInput";
 
 type Task = {
   id: number;
@@ -96,6 +97,24 @@ const Tasks = () => {
     }
   };
 
+  /**
+   * Handle smart task confirmation - saves the parsed task directly.
+   * Called by SmartTaskInput when user clicks "Confirm".
+   */
+  const handleSmartTaskConfirm = useCallback(async (task: Task) => {
+    await invoke("add_task", { task });
+    await fetchTasks();
+  }, []);
+
+  /**
+   * Handle smart task edit - populates the manual form.
+   * Called by SmartTaskInput when user clicks "Edit".
+   */
+  const handleSmartTaskEdit = useCallback((taskData: Omit<Task, 'id'>) => {
+    setForm(taskData);
+    setEditId(null); // Ensure we're in "add" mode, not "edit" mode
+  }, []);
+
   const filteredTasks = tasks.filter((task) => {
     return (
       (filter.status === "" || task.status === filter.status) &&
@@ -178,17 +197,42 @@ const Tasks = () => {
       {activeTab === 'tasks' ? (
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Task Form */}
-          <div className="lg:col-span-1 order-2 lg:order-1">
-            <div className="panel lg:sticky lg:top-8">
-              <div className="flex items-center gap-3 mb-6">
+          <div className="lg:col-span-1 order-2 lg:order-1 space-y-6">
+            {/* Smart Task Input - Natural Language */}
+            <div className="panel">
+              <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--accent-dim)' }}>
                   <svg className="w-4 h-4" style={{ color: 'var(--accent)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-                  {editId === null ? "Add New Task" : "Edit Task"}
-                </h3>
+                <div>
+                  <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Quick Add</h3>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Type naturally to create tasks</p>
+                </div>
+              </div>
+              <SmartTaskInput
+                onConfirm={handleSmartTaskConfirm}
+                onEdit={handleSmartTaskEdit}
+              />
+            </div>
+
+            {/* Manual Task Form */}
+            <div className="panel lg:sticky lg:top-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--bg-card-hover)' }}>
+                  <svg className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    {editId === null ? "Manual Entry" : "Edit Task"}
+                  </h3>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    {editId === null ? "Or fill in the details manually" : "Modify task details"}
+                  </p>
+                </div>
               </div>
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
