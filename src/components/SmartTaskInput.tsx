@@ -6,22 +6,24 @@
  * 
  * ARCHITECTURE:
  * -------------
- * The parsing logic is abstracted behind parseNaturalTaskAsync() which currently
- * uses rule-based parsing but can be swapped for:
+ * The parsing logic uses a dual-mode approach:
  * 
- * [FUTURE: TAURI BACKEND]
- * Replace parseNaturalTaskAsync() internals with:
- *   await invoke<ParseResult>('parse_natural_task', { input })
+ * 1. AI Mode (when Ollama is available):
+ *    - Uses local LLM for natural language understanding
+ *    - Falls back to rule-based if AI fails
+ *    - Shows "⚡ AI Enabled" badge
  * 
- * [FUTURE: LOCAL LLM]
- * Replace parseNaturalTaskAsync() internals with:
- *   await fetch('http://localhost:11434/api/generate', { ... })
+ * 2. Rule-Based Mode (default/fallback):
+ *    - Fast, offline parsing using pattern matching
+ *    - Always available, no external dependencies
  * 
- * The UI code remains unchanged in both cases.
+ * Both modes produce the same output format for seamless integration.
  */
 
-import { useState, useCallback, KeyboardEvent } from 'react';
+import { useState, useCallback, useEffect, KeyboardEvent } from 'react';
 import { parseNaturalTaskAsync, ParseResult, toAppTask } from '../lib/nlp';
+import { useAIAvailability } from '../hooks/useAIAvailability';
+import { parseTaskWithAI, cancelAIRequest } from '../ai';
 
 // =============================================================================
 // Types
@@ -90,6 +92,32 @@ function TagChip({ tag }: { tag: string }) {
   );
 }
 
+/**
+ * Format ISO date string for display.
+ */
+function formatDateForDisplay(dateStr: string): string {
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    };
+    
+    // Add time if present
+    if (dateStr.includes('T')) {
+      options.hour = 'numeric';
+      options.minute = '2-digit';
+    }
+    
+    return date.toLocaleDateString('en-US', options);
+  } catch {
+    return dateStr;
+  }
+}
+
 // =============================================================================
 // Preview Card
 // =============================================================================
@@ -99,9 +127,11 @@ interface PreviewCardProps {
   onConfirm: () => void;
   onEdit: () => void;
   isLoading: boolean;
+  /** Whether AI was used for parsing */
+  usedAI?: boolean;
 }
 
-function PreviewCard({ result, onConfirm, onEdit, isLoading }: PreviewCardProps) {
+function PreviewCard({ result, onConfirm, onEdit, isLoading, usedAI = false }: PreviewCardProps) {
   const task = result.task!;
   const summary = result.summary!;
   
@@ -127,6 +157,18 @@ function PreviewCard({ result, onConfirm, onEdit, isLoading }: PreviewCardProps)
         <span className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--accent)' }}>
           Preview
         </span>
+        {usedAI && (
+          <span 
+            className="text-xs px-2 py-0.5 rounded-full flex items-center gap-1"
+            style={{ backgroundColor: 'var(--accent-dim)', color: 'var(--accent)' }}
+            title="Parsed using local AI"
+          >
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+            </svg>
+            AI
+          </span>
+        )}
         {result.metadata.confidence === 'low' && (
           <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: 'var(--warning)', color: '#000' }}>
             Low confidence
@@ -265,34 +307,88 @@ export default function SmartTaskInput({ onConfirm, onEdit, disabled = false }: 
   const [isParsing, setIsParsing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
+  // Whether AI was used for the current parse result
+  const [usedAI, setUsedAI] = useState(false);
+  
   // Error state for inline error display
   const [error, setError] = useState<string | null>(null);
   
+  // AI availability hook - checks Ollama status
+  const { isAvailable: isAIAvailable, preferredModel } = useAIAvailability();
+  
+  // Cleanup: cancel AI request when component unmounts
+  useEffect(() => {
+    return () => {
+      cancelAIRequest();
+    };
+  }, []);
+  
   /**
-   * Parse the current input.
-   * 
-   * [FUTURE: AI/BACKEND INTEGRATION]
-   * This is where the parsing happens. parseNaturalTaskAsync() can be replaced
-   * with a Tauri command or LLM call without changing this component.
+   * Parse the current input using AI if available, with fallback to rule-based.
    */
   const handleParse = useCallback(async () => {
     if (!input.trim()) {
       setParseResult(null);
       setError(null);
+      setUsedAI(false);
       return;
     }
     
     setIsParsing(true);
     setError(null);
+    setUsedAI(false);
     
     try {
-      // [INTEGRATION POINT] This async call can be backed by:
-      // 1. Rule-based parser (current)
-      // 2. Tauri invoke() to Rust backend
-      // 3. Local LLM HTTP endpoint
-      const result = await parseNaturalTaskAsync(input);
+      let result: ParseResult | null = null;
+      let aiUsed = false;
+      
+      // Try AI parsing first if available
+      if (isAIAvailable && preferredModel) {
+        const aiResult = await parseTaskWithAI(input);
+        
+        if (aiResult.success && aiResult.task) {
+          // Convert AI result to ParseResult format
+          result = {
+            success: true,
+            task: {
+              title: aiResult.task.title,
+              description: '',
+              dueDate: aiResult.task.due_date ? aiResult.task.due_date.split('T')[0] : null,
+              dueTime: aiResult.task.due_date?.includes('T') 
+                ? aiResult.task.due_date.split('T')[1]?.substring(0, 5) || null 
+                : null,
+              dueDatetime: aiResult.task.due_date || null,
+              tags: aiResult.task.tags,
+              priority: aiResult.task.priority as 'Low' | 'Medium' | 'High',
+              status: 'Pending',
+            },
+            metadata: {
+              originalInput: input,
+              extractedSegments: {},
+              confidence: 'high',
+              source: 'llm-local',
+              parseTimeMs: aiResult.duration,
+              warnings: [],
+            },
+            summary: {
+              text: `${aiResult.task.title}`,
+              dueDateDisplay: aiResult.task.due_date 
+                ? formatDateForDisplay(aiResult.task.due_date) 
+                : null,
+              needsConfirmation: true,
+            },
+          };
+          aiUsed = true;
+        }
+      }
+      
+      // Fallback to rule-based parsing if AI failed or unavailable
+      if (!result) {
+        result = await parseNaturalTaskAsync(input);
+      }
       
       setParseResult(result);
+      setUsedAI(aiUsed);
       
       if (!result.success) {
         setError(result.error || 'Could not parse task. Try adding more details.');
@@ -301,10 +397,11 @@ export default function SmartTaskInput({ onConfirm, onEdit, disabled = false }: 
       console.error('Parse error:', err);
       setError('An unexpected error occurred while parsing.');
       setParseResult(null);
+      setUsedAI(false);
     } finally {
       setIsParsing(false);
     }
-  }, [input]);
+  }, [input, isAIAvailable, preferredModel]);
   
   /**
    * Handle keyboard events - Enter triggers parsing
@@ -381,6 +478,8 @@ export default function SmartTaskInput({ onConfirm, onEdit, disabled = false }: 
     setInput('');
     setParseResult(null);
     setError(null);
+    setUsedAI(false);
+    cancelAIRequest(); // Cancel any in-flight AI request
   }, []);
   
   return (
@@ -460,11 +559,35 @@ export default function SmartTaskInput({ onConfirm, onEdit, disabled = false }: 
           )}
         </div>
         
-        {/* Helper Text */}
-        <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-          Press <kbd className="px-1.5 py-0.5 rounded text-xs" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>Enter</kbd> to parse • 
-          Supports dates, times, #tags, and priority keywords
-        </p>
+        {/* Helper Text with AI Status */}
+        <div className="flex items-center justify-between mt-2">
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            Press <kbd className="px-1.5 py-0.5 rounded text-xs" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>Enter</kbd> to parse • 
+            Supports dates, times, #tags, and priority keywords
+          </p>
+          
+          {/* AI Status Badge */}
+          {isAIAvailable ? (
+            <span 
+              className="text-xs px-2 py-0.5 rounded-full flex items-center gap-1"
+              style={{ backgroundColor: 'var(--accent-dim)', color: 'var(--accent)' }}
+              title={`AI Enabled - Using ${preferredModel}`}
+            >
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+              </svg>
+              AI Enabled (Local)
+            </span>
+          ) : (
+            <span 
+              className="text-xs cursor-help"
+              style={{ color: 'var(--text-muted)' }}
+              title="Install Ollama to unlock local AI features"
+            >
+              <span className="opacity-60">AI unavailable</span>
+            </span>
+          )}
+        </div>
       </div>
       
       {/* Error Message */}
@@ -491,6 +614,7 @@ export default function SmartTaskInput({ onConfirm, onEdit, disabled = false }: 
           onConfirm={handleConfirm}
           onEdit={handleEdit}
           isLoading={isSaving}
+          usedAI={usedAI}
         />
       )}
     </div>
