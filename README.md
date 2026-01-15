@@ -3,6 +3,9 @@
 
 # ZenTrack
 
+![ZenTrack Screenshot](public/assets/homepage.png)
+
+
 A local-first desktop productivity tool for students who need to manage tasks, track time, and stay focused without cloud dependencies or distractions.
 
 Built with Tauri, React, and SQLite. Runs entirely on your machine.
@@ -25,6 +28,8 @@ All data stays on your device. No accounts, no servers, no sync.
 
 ## Local AI Assistant (Optional)
 
+![ZenTrack Screenshot](public/assets/aiassistantpanel.png)
+
 ZenTrack includes an optional AI layer that runs entirely on your machine via Ollama.
 
 When enabled, the AI can:
@@ -36,6 +41,8 @@ When enabled, the AI can:
 The AI never sends data externally. It reads your local task database and generates responses using a model running on your hardware.
 
 ### What Happens Without AI
+
+![ZenTrack Screenshot](public/assets/taskmanager.png)
 
 All core functionality works without AI. Task creation falls back to rule-based parsing. The chat assistant simply doesn't appear in the UI.
 
