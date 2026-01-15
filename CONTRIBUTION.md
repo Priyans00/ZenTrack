@@ -78,9 +78,6 @@ cargo fmt
 
 ---
 
-## ❤️ Credits
-
-Built with **Rust**, **Tauri**, and **Next.js** by the ZenTrack team & community.
 
 
 
