@@ -732,7 +732,7 @@ function MessageBubble({ message }: MessageBubbleProps) {
         }`}
         style={{
           backgroundColor: isUser ? 'var(--accent)' : 'var(--bg-card)',
-          color: isUser ? '#000' : 'var(--text-primary)',
+          color: isUser ? '#1a1200' : 'var(--text-primary)',
         }}
       >
         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
